@@ -116,8 +116,7 @@ The original query contains **2 columns**.
 
 ```
 1 UNION SELECT table_name,2 
-FROM information_schema.tables 
-WHERE table_schema=database()
+FROM information_schema.tables
 ```
 
 ![alt text](1.3-SQLi.png)
